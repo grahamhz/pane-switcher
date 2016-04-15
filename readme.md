@@ -138,7 +138,7 @@ $scope.control.push_popup = function(tag, attrs, popup)
     $animate.enter(popup, container);
 };
 ```
-This may seem complex, but it's really not. I've tried to explain the majority of the functionality there. It's really just there to push the popup onto the stack, making sure that it's fully compiled and set up with its directive attributes.
+This may seem complex, but it's really not. I've explained the majority of the functionality in the comments. It's really just there to push the popup onto the stack, making sure that it's fully compiled and set up with its directive attributes.
 
 ##### Let's Pop that Popup
 At this point, popping a popup is super easy! Let's define that functionality.
@@ -180,7 +180,7 @@ var popup = {
 }
 $scope.paneSwitcherCtrl.push_popup('totally-cool-popup', attrs, popup);
 ```
-And there you have it! This assumes that you have a directive in your angular app called `totallyCoolPopup`. This will create an instance of that directive and animate it onto the page! You'll also need to hook up `confirm()` and `cancel()` to remove the popup and then do whatever you want it to.
+And there you have it! This assumes that you have a directive in your AngularJS app called `totallyCoolPopup`. This will create an instance of that directive and animate it onto the page! You'll also need to hook up `confirm()` and `cancel()` to remove the popup and then do whatever you want it to.
 
 In order for this to work, the HTML template for `totallyCoolPopup` might look something like this:
 ```html
