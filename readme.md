@@ -1,6 +1,6 @@
 ---
 author: Graham Zuber
-title: "Popups are an ng-Pain!"
+title: "Popups don't have to be an ng-Pain!"
 layout: post
 categories:
   - programming
