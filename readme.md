@@ -13,7 +13,7 @@ header-image: img/posts/13903385550_62b8ac45c4_o-300x200.jpg
 #Popups are an ng-Pain!
 
 ## What is this?
-This post is all about a smart way to manage your popups in angularjs. It can also be extended to make your monolithic controllers and HTML templates more manageable (sweet, sweet modularization).
+This post is all about a smart way to manage your popups in AngularJS. It can also be extended to make your monolithic controllers and HTML templates more manageable (sweet, sweet modularization).
 
 ## Why is this?
 Recently, I created an app for a client that wanted to mimic the behavior of their mobile apps. The idea was to "stack" the mobile page views side by side in order to use the increased screen size. Making sense? No? That's fine, it doesn't really matter.
@@ -24,20 +24,20 @@ To fulfill these layout needs, I developed something I like to call the pane-swi
 > I was trying to mimic mobile development practices where you can create a view, it takes care of user input, and calls a callback before destroying itself. 
 
 ## Ugh, I hate popups...
-I'm with you there. Popups are something that I've always wanted to do better in AngularJS. I've tried many different solutions, none of which with I was satisfied. Have you ever ended up with 4 or 5 popups in your HTML template with "visibility bools" tied to an ng-show attribute for each one?
+I'm with you there. Popups are something that I've always wanted to do better in AngularJS. I've tried many different solutions, none of which with I was satisfied. Have you ever ended up with 4 or 5 popups in your HTML template with "visibility bools" tied to an `ng-show` attribute for each one?
 
 Shhh, no more tears. Only pane-switcher now.
 
 ## Let's get down to business
-An example of this set up is available on [my GitHub](https://github.com/grahamhz/pane-switcher) with many comments. Here's a higher-level description:
+An example of this set up is available on [my GitHub][pane-switcher] with many comments. Here's a higher-level description:
 
 The pane-switcher begins and ends with AngularJS directives. It maintains a stack for popups. One could argue that all we need for the popup is a single object variable, but maybe you want multiple layers of popups. Maybe not. Point is that you could, I don't know your life. 
 
-It uses the AngularJS $compile object to dynamically (and programmatically) build HTML elements and then compiles them into the directive that corresponds to their HTML element tag.
+It uses the AngularJS `$compile` object to dynamically (and programmatically) build HTML elements and then compiles them into the directive that corresponds to their HTML element tag.
 
 #### Setting up the pane switcher
 
-Let's insert the pane-switcher directive into our ng-view template:
+Let's insert the pane-switcher directive into our `ng-view` template:
 ```html
 <pane-switcher control="paneSwitcherCtrl" config="paneSwitcherConfig"></pane-switcher>
 ```
@@ -69,7 +69,7 @@ paneSwitcherDirective.scope = {
     config: '='
 };
 ```
-This is a basic AngularJS directive property. Basically, I'm setting up `control` and `config` in the pane-switcher's scope to be references to objects also contained in my controller. This is what allows me to attach methods to control, which my controller can call later. For more info about directives and this '=' syntax, see AngularJS's documentation.
+This is a basic AngularJS directive property. Basically, I'm setting up `control` and `config` in the pane-switcher's scope to be references to objects also contained in my controller. This is what allows me to attach methods to control, which my controller can call later. For more info about directives and this '=' syntax, see the [AngularJS documentation](https://angularjs.org/).
 
 > Note:
 > I'm also limiting the scope of the pane-switcher so that it can't access anything the controller doesn't want it to. Encapsulation, baby.
@@ -134,7 +134,7 @@ $scope.control.push_popup = function(tag, attrs, popup)
 This may seem complex, but it's really not. I've tried to explain the majority of the functionality there. It's really just there to push the popup onto the stack, making sure that it's fully compiled and set up with its directive attributes.
 
 >Note:
->You'll notice I defined it on the 'control' object. This is so the controller can access and call the function later.
+>You'll notice I defined it on the `control` object. This is so the controller can access and call the function later.
 
 ##### Let's Pop that Popup
 At this point, popping a popup is super easy! Let's define that functionality.
@@ -155,7 +155,7 @@ $scope.control.pop_popup = function()
 ```
 
 #### Using the Pane Switcher
-Now let's use it! From my controller, I can create a new popup...
+Now let's use it! From my controller, I can create a new popup.
 ```javascript
 var attrs = [
 	{ key: "class", value: "some-class-I-dunno" }
@@ -173,9 +173,9 @@ var popup = {
 }
 $scope.paneSwitcherCtrl.push_popup('totally-cool-popup', attrs, popup);
 ```
-and there you have it! This assumes that you have a directive in your angular app called totallyCoolPopup. This will create an instance of that directive and animate it onto the page! You'll also need to hook up `confirm()` and `cancel()` to remove the popup and then do whatever you want it to.
+And there you have it! This assumes that you have a directive in your angular app called `totallyCoolPopup`. This will create an instance of that directive and animate it onto the page! You'll also need to hook up `confirm()` and `cancel()` to remove the popup and then do whatever you want it to.
 
-In order for this to work, totallyCoolPopup's HTML template might look something like this:
+In order for this to work, the HTML template for `totallyCoolPopup` might look something like this:
 ```html
 <div id="{{ data.elementId }}">
     <h1>{{ data.title }}</h1>
@@ -185,6 +185,8 @@ In order for this to work, totallyCoolPopup's HTML template might look something
 ```
 
 ## Conclusion
-If you've ever been annoyed by poor implementations of popups in AngularJS apps, the pane-switcher is here for you. You could also use this for normal page content! If you have an element that disappears from or is inserted into your layout, consider this solution! It wouldn't be hard to adapt this to do more than just popups (I did). I will say, however, that if you're going to use this for more than popups (especially if it involves tracking state) consider the [ui-router](https://github.com/angular-ui/ui-router).
+If you've ever been annoyed by poor implementations of popups in AngularJS apps, the pane-switcher is here for you. You could also use this for normal page content! If you have an element that disappears from or is inserted into your layout, consider this solution! It wouldn't be hard to adapt this to do more than just popups (as I did). I will say, however, that if you're going to use this for more than popups (especially if it involves tracking state) consider the [ui-router](https://github.com/angular-ui/ui-router).
 
-If you'd like more complete source code, checkout my example repo on [GitHub](https://github.com/grahamhz/pane-switcher)
+If you'd like more complete source code, checkout my example repo on [GitHub][pane-switcher].
+
+[pane-switcher]: https://github.com/grahamhz/pane-switcher
