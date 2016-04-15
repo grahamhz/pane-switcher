@@ -1,4 +1,5 @@
-uthor: Graham Zuber
+---
+author: Graham Zuber
 layout: post
 categories:
   - programming
@@ -9,75 +10,55 @@ tags:
 header-image: img/posts/13903385550_62b8ac45c4_o-300x200.jpg
 ---
 
-# What is this?
-This post is all about a smart way to manage your popups in angularjs. It can also be extended to make your monolithic controllers more manageable (sweet, sweet encapsulation).
+#Popups are an ng-Pain!
 
-# Why is this?
-Recently, I created an app for a client that wanted to mimic the behavior of their mobile apps. The idea was to "stack" the mobile page views side by side in order to use the increased screen size. Making sense? No? That makes sense - that's why I made an example of the layout below!
+## What is this?
+This post is all about a smart way to manage your popups in angularjs. It can also be extended to make your monolithic controllers and HTML templates more manageable (sweet, sweet modularization).
 
-<div style="text-align:center"><img src="/img/posts/webapptemplate.png" width="250" /></div>
+## Why is this?
+Recently, I created an app for a client that wanted to mimic the behavior of their mobile apps. The idea was to "stack" the mobile page views side by side in order to use the increased screen size. Making sense? No? That's fine, it doesn't really matter.
 
-In this example, there are only ever 2 panes showing at a time. But what happens when the user is four levels deep? I only want to show level 3 and 4, while levels 1 and 2 should be hidden.
+To fulfill these layout needs, I developed something I like to call the pane-switcher (which has become infamous here at Pixio; mainly because I won't shut up about it). The pane-switcher is essentially a system for compiling AngularJS directives when you need them and removing them from the page entirely when you're done with them. It's called the pane-switcher because I created for a reason unrelated to popups, but in the process of creating it I realized it could solve my popup problems.
 
-# Ah, the problem
-This is a classic angularjs problem that I've encountered. I have a bunch of elements that I want on the page, but I don't want to show them all at once! I started thinking about the consequences of having multiple "visibility bools" tied to various ng-show propertied throughout my page, but that sounded like a huge PANE. Once, the thought crossed my mind to have an array of "visibility bools," which is when I knew I had lost it.
+> Note:
+> I was trying to mimic mobile development practices where you can create a view, it takes care of user input, and calls a callback before destroying itself. 
 
-## Enter the Pane-Switcher
-The infamous pane-switcher was born (I say infamous because everyone at the office got tired of me talking about it constantly).
+## Ugh, I hate popups...
+I'm with you there. Popups are something that I've always wanted to do better in AngularJS. I've tried many different solutions, none of which with I was satisfied. Have you ever ended up with 4 or 5 popups in your HTML template with "visibility bools" tied to an ng-show attribute for each one?
 
-The pane-switcher is an attempt to architect a system similar to mobile applications where they can instantiate a view or an object, let the view handle any inputs from the user, return the finished changes to the controller when the user hits "Back" or "Save," and let the view delete itself.
+Shhh, no more tears. Only pane-switcher now.
 
-It also works incredibly well with popups! I'll show you how to create a popup with just a javascript object and have it delete itself and callback to the controller (or its caller) when it's done.
+## Let's get down to business
+An example of this set up is available on [my GitHub](https://github.com/grahamhz/pane-switcher) with many comments. Here's a higher-level description:
 
-I accomplish this with directives! The pane switcher maintains two stacks. One for panes and one for popups. It uses directives and the angular $compile object to dynamically (and programmatically) add angular directives to the page when you need them, and remove them completely when you don't.
+The pane-switcher begins and ends with AngularJS directives. It maintains a stack for popups. One could argue that all we need for the popup is a single object variable, but maybe you want multiple layers of popups. Maybe not. Point is that you could, I don't know your life. 
 
-## Implementation
-
-An example of this set up is available on [my github]:https://github.com/grahamhz/pane-switcher with many comments. Here's a higher-level description:
+It uses the AngularJS $compile object to dynamically (and programmatically) build HTML elements and then compiles them into the directive that corresponds to their HTML element tag.
 
 #### Setting up the pane switcher
 
-The beautiful thing about the pane-switcher is that your ng-view template becomes one line of code.
-```javascript
-<pane-switcher control="paneSwitcherCtrl" config="paneSwitcherConfig" data="controlData" starting-pane="programs-pane"></pane-switcher>
+Let's insert the pane-switcher directive into our ng-view template:
+```html
+<pane-switcher control="paneSwitcherCtrl" config="paneSwitcherConfig"></pane-switcher>
 ```
-Here, we're inserting the 'pane-switcher' directive into our view. What are these data objects I'm passing in, you ask? They're objects that are created in the parent controller of the pane switcher. Let's go over each one:
+Let's go over these data objects I'm passing in. These are objects that were created in the parent controller of the pane switcher. Let's go over each one:
 
-##### control
-The control property is an object that represents the functionality needed to add/delete things from the pane-switcher. It's an empty object that the pane-switcher can add methods and function to so that the controller can manipulate panes later.
+#### `control`
+The `control` property is an object that represents the functionality needed to add/delete things from the pane-switcher. It's an empty object that the pane-switcher adds methods to in order to allow the controller to manipulate the popups on screen later.
 ```javascript
 $scope.paneSwitcherCtrl = {};
 ```
 
-##### config
-This is a config object for the pane switcher. You can fill this object with anything! I used it for functions that will tell the pane switcher how many panes can be visible at any one time.
+#### `config`
+This is a config object for the pane-switcher. You can fill this object with anything! In this example, I define properties for the pane-switcher to watch from the root scope in order to keep track of significant width-change events (this way, the pane-switcher could potentially notify any popups that need to change their properties if, say, the browser window gets shrunk to a mobile resolution).
 ```javascript
 $scope.paneSwitcherConfig = {
     widthWatchers: [
         '$root.isMobile',
         '$root.showSideMenu'
-    ],
-    getColumnWidthClass: get_column_width,
-    getNumberActivePanes: get_number_active_panes
+    ]
 };
 ```
-Here are some examples of what I did with config. I defined 'widthWatchers' which are global properties that tell me if the browser is within mobile resolutions and whether or not the side menu is showing (which would potentially adjust the column width of my panes). I feel like the other functions are somewhat self-explanatory. 
-
-##### data
-Data is just the object that you want to pass to each of your child views (panes).
-```javascript
-$scope.controlData = {
-    object: object,
-    "first-pane": {
-        save: function(){}
-    },
-    "second-pane": {
-        back: function(){},
-        save: function(){}
-    }
-}
-```
-For cleanliness and safety, I define properties on the object named after the pane that will need to access them. It's a defacto namespace.
 
 #### Creating the pane switcher
 ##### Scope
@@ -85,225 +66,116 @@ Let's define the scope of the pane-switcher directive:
 ```javascript
 paneSwitcherDirective.scope = {
     control: '=',
-    config: '=',
-    data: '=',
-    startingPane: '@'
+    config: '='
 };
 ```
-Now we have references to all of our valuable objects, as well as a value for the pane to instantiate on page load.
+This is a basic AngularJS directive property. Basically, I'm setting up `control` and `config` in the pane-switcher's scope to be references to objects also contained in my controller. This is what allows me to attach methods to control, which my controller can call later. For more info about directives and this '=' syntax, see AngularJS's documentation.
 
-##### Member Variables
-Let's go over the pane switcher's functionality (these methods would go in the link function of the pane-switcher directive).
+> Note:
+> I'm also limiting the scope of the pane-switcher so that it can't access anything the controller doesn't want it to. Encapsulation, baby.
 
-First of all, we need to create our two stacks.
-```javascript
-var viewStack = [];
-var popupStack = [];
-```
-As I said, the view stack is for panes while the popup stack is for popups. One could argue that all we need for the popup is a single object variable, but maybe you want multiple layers of popups. Maybe not. Point is that you could, I don't know your life.
-##### Pushing a Pane
-Next, let's define a function for pushing a pane onto the stack. This is the sweet magic sauce that is the pane switcher.
+##### Link Function
+
+Let's start building the pane-switcher's main functionality.
+
+##### Pushing a Popup onto the Stack
+Let's define a function so the controller can push a popup onto the stack. This is the sweet magic sauce that is the pane switcher.
 
 ```javascript
 /**
- * pushes a pane onto the stack, compiles, and displays it
+ * pushes a popup onto the stack, compiles, and displays it
  * @param {String} tag: tag of html element to create
  * @param {Array}{Object} attrs: array of attr objects defined as:
  * {
  *   key: key of html attr
  *   value: value of html attr
  * }
+ * @param {Object} popup: object that defines the scope of the new popup
  */
-$scope.control.push_pane = function(tag, attrs)
+$scope.control.push_popup = function(tag, attrs, popup)
 {
-    // first, create a parent div container for your new directive
-    var container = angular.element(document.createElement('div')); // create the html element that will hold your directive
-    container.attr('id', "pane-" + viewStack.length); // add a unique id
-    
-    // add any classes you might need
-    container.addClass('pane-switcher-pane');
-    container.addClass($scope.config.getColumnWidthClass());
+	// optionally limit the number of popups on screen
+    if(popupStack.length >= 1)
+    {
+        $scope.control.pop_popup();
+    }
 
-    // compile the html
-    $compile(container)($scope);
-    element.find('#pane-switcher').append(container); // add the compiled html to the page (#pane-switcher is the unique id of the parent element of the pane-switcher template)
+    // build new popup element
+    var popup = angular.element(document.createElement(tag)); // create element where tag is the name of the popup directive you're creating
+    $scope.popup = popup; // save a reference to the scope of this popup
+    popup.attr('data', 'popup'); // add attribute to element so it can access the popup object we just set on this scope
+    popup.addClass('popup-enter'); // add any relevant classes
 
-    // second, build new pane
-    var object = angular.element(document.createElement(tag)); // create element
-    object.attr('control', 'control'); // add reference to pane switch control object
-    object.attr('data', 'data'); // add reference to data needed for children
-    object.attr('tag', tag); // let ths pane know what kind of pane it is
-    
-    // add any relevant classes the the directive itself
-    object.addClass('pane-enter'); // animation class
-
-    // loop through all attributes that were passed into the function and add them to your new directive
+	// add any attributes passed in through attr parameter
     if(attrs !== null && attrs !== undefined)
     {
         for(var i = 0; i < attrs.length; i++)
         {
-            object.attr(attrs[i].key, attrs[i].value);
+            popup.attr(attrs[i].key, attrs[i].value);
         }
     }
 
-    // compile your new directive
-    $compile(object)($scope);
+    // compile the popup with this scope
+    $compile(popup)($scope);
+    var container = element.find('#pane-switcher-popup-container'); // add it to the pane switcher's HTML
 
-    // create a viewstack object with references to info we'll need later
-    var viewStackObj = {
+	// save anything you want in the popup stack and push it
+    var popupStackObj = {
         tag: tag,
-        level: viewStack.length,
-        object: container
+        level: popupStack.length,
+        object: popup
     };
-    viewStack.push(viewStackObj);
+    popupStack.push(popupStackObj);
 
-    // animate the object coming onto the page
-    $animate.enter(object, container);
-
-    // since we added a new pane, let's make sure we're only showing at most the max number of elements on page (may not be important to you)
-    adjust_columns($scope.config.getNumberActivePanes(), $scope.config.getColumnWidthClass());
+	// animate the popup entering
+    $animate.enter(popup, container);
 };
 ```
-This seems complex, but it's really not. I've tried to explain the majority of the functionality there. It's really just there to push the pane to the next level in the stack, making sure that it's fully compiled and linked with its own directive link function.
+This may seem complex, but it's really not. I've tried to explain the majority of the functionality there. It's really just there to push the popup onto the stack, making sure that it's fully compiled and set up with its directive attributes.
 
-You'll notice I defined it on the 'control' object. This is so the controller can access and call the function later.
+>Note:
+>You'll notice I defined it on the 'control' object. This is so the controller can access and call the function later.
 
-##### Let's Pop that Pane
-At this point, popping a pane is super easy! Let's define that functionality.
+##### Let's Pop that Popup
+At this point, popping a popup is super easy! Let's define that functionality.
 ```javascript
 /**
  * pops the top pane off of the view stack,
  * removes from dom
  */
-$scope.control.pop_pane = function()
+$scope.control.pop_popup = function()
 {
-    if(viewStack.length >= 1)
+    if(popupStack.length >= 1)
     {
-        var pane = viewStack.pop(); // take it off the top!
-        $animate.leave(pane.object); // animating it leaving also removes it entirely from the page
+        var popup = popupStack.pop(); // take it off the top!
+        $animate.leave(popup.object); // you can even animate the popup leaving the page! This will remove the element from the page upon completion
+        // popup.object.remove(); if you don't want to animate it
     }
 };
 ```
-
-##### I know, I know
-I know. You're thinking "What if I need to pop a bunch of panes?" Or "What if I only need to pop panes up to a certain pane, but I only know the tag of the pane that should be at the top after I'm done popping?"
-
-I know these things because I had those same concerns! So I wrote helper functions that leverage the pop_pane function.
-
-```javascript
-/**
- * begins popping panes from top of stack. stops after
- * popping the first occurrence (from the top) of the
- * given tag
- * @param {String} tag: tag at which to stop popping
- */
-$scope.control.pop_panes_to_tag = function(tag)
-{
-    if(!$scope.control.check_for_tag(tag)) // another helper I made to make sure the tag was in the stack
-    {
-        return;
-    }
-
-    // save the number of elements
-    var count = viewStack.length;
-
-    // pop and remove panes
-    while(count > 0)
-    {
-        // pop the pane and remove it from the page
-        var pane = viewStack.pop();
-        pane.object.remove();
-
-        // break after I've removed the supplied tag
-        if(pane.tag === tag)
-        {
-            adjust_columns($scope.config.getNumberActivePanes(), $scope.config.getColumnWidthClass());
-            return;
-        }
-        count--;
-    }
-};
-
-/**
- * pops panes up to (but not including) tag
- * @param {String} tag
- */
-$scope.control.pop_panes_up_to_tag = function(tag)
-{
-    // find the tag on top of the tag supplied
-    var previousTag = null;
-    for(var i = viewStack.length - 1; i >= 0; i--)
-    {
-        if(viewStack[i].tag === tag)
-        {
-            // if it's the top element
-            if(previousTag === null)
-            {
-                return;
-            }
-            break;
-        }
-
-        // set previous tag
-        previousTag = viewStack[i].tag;
-    }
-
-    // call pop panes to tag
-    $scope.control.pop_panes_to_tag(previousTag);
-};
-```
-
-That's most of the functionality that you need! Pushing and popping popups is pretty much the same as pushing and popping panes. I would just use a separate parent element for popups so they aren't mixed with panes.
-
-(another great helper that I use a lot is a function to check if a certain pane is in the stack)
 
 #### Using the Pane Switcher
-Now let's use it! From my controller, I can simply call...
+Now let's use it! From my controller, I can create a new popup...
 ```javascript
 var attrs = [
-    { key: "id", value: "unique-id"}
+	{ key: "class", value: "some-class-I-dunno" }
 ];
-$scope.paneSwitcherCtrl.push_pane('second-pane', attrs);
-```
-and your pane is on screen!
 
-What if I want to remove the second pane if someone hits a button on the second-pane? Remeber the data object we created in the controller? Let's edit that to hook up that functionality.
-```javascript
-$scope.controlData = {
-    object: object,
-    "first-pane": {
-        save: function(){}
-    },
-    "second-pane": {
-        removeThyself: function() { $scope.paneSwitcherCtrl.pop_panes_to_tag('second-pane'); },
-        back: function(){},
-        save: function(){}
-    }
-}
-```
-Now, when someone hits the exit button on the second pane, we can call this from second-pane's link function:
-```javascript
-$scope.data[$scope.tag].removeThyself();
-```
-and it's gone!
-
-The same principle can be applied to popups. Here's how I create a popup:
-```javascript
 var popup = {
     elementId: 'cool-popup',
-    title: 'This is the title!',
+    title: 'This is a title!',
     confirmButtonText: 'I Concur',
-    cancelButtonText: 'Cancel',
+    cancelButtonText: 'Meh',
     confirmButtonClass: 'css-class-for-confirm-button',
     cancelButtonClass: 'css-class-for-cancel-button',
     confirmButtonCallback: function(){ confirm(); },
     cancelButtonCallback: function(){ cancel(); }
 }
-$scope.paneSwitcherCtrl.push_popup('confirmation-popup', [], popup);
+$scope.paneSwitcherCtrl.push_popup('totally-cool-popup', attrs, popup);
 ```
-Here, I added another parameter to push_popup (compared to push_pane) because a popup doesn't need access to all the data from the controller that a pane does. It only needs to know what to display and the callbacks it needs to call, so this popup object becomes the directives new "data" scope property.
+and there you have it! This assumes that you have a directive in your angular app called totallyCoolPopup. This will create an instance of that directive and animate it onto the page! You'll also need to hook up `confirm()` and `cancel()` to remove the popup and then do whatever you want it to.
 
-So the directive for confirmation-popup would have a template kind of like this:
+In order for this to work, totallyCoolPopup's HTML template might look something like this:
 ```html
 <div id="{{ data.elementId }}">
     <h1>{{ data.title }}</h1>
@@ -313,8 +185,6 @@ So the directive for confirmation-popup would have a template kind of like this:
 ```
 
 ## Conclusion
-If you're a victim of monolithic controllers and templates with angularjs where a lot of it isn't visible most of the time, there is hope. You can try cleaning everything up using an implementation similar to the pane-switcher. 
+If you've ever been annoyed by poor implementations of popups in AngularJS apps, the pane-switcher is here for you. You could also use this for normal page content! If you have an element that disappears from or is inserted into your layout, consider this solution! It wouldn't be hard to adapt this to do more than just popups (I did). I will say, however, that if you're going to use this for more than popups (especially if it involves tracking state) consider the [ui-router](https://github.com/angular-ui/ui-router).
 
-If you'd like more complete source code, checkout my example repo on [github]:https://github.com/grahamhz/pane-switcher
-
-DISCLAIMER: If you're going to involve tracking state in the pane-switcher, might I suggest looking at the [ui-router]:https://github.com/angular-ui/ui-router
+If you'd like more complete source code, checkout my example repo on [GitHub](https://github.com/grahamhz/pane-switcher)
