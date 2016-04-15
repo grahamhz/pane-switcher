@@ -1,5 +1,6 @@
 ---
 author: Graham Zuber
+title: "Popups are an ng-Pain!"
 layout: post
 categories:
   - programming
@@ -9,8 +10,6 @@ tags:
   - web
 header-image: img/posts/13903385550_62b8ac45c4_o-300x200.jpg
 ---
-
-#Popups are an ng-Pain!
 
 ## What is this?
 This post is all about a smart way to manage your popups in AngularJS. It can also be extended to make your monolithic controllers and HTML templates more manageable (sweet, sweet modularization).
