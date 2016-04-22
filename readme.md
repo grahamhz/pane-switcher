@@ -37,19 +37,23 @@ Let's start an example to show off the pane-switcher! For a more in-depth exampl
 ## Setting up the pane switcher
 
 Place the pane-switcher directive into our `ng-view` template:
+
 ```html
 <pane-switcher control="paneSwitcherCtrl" config="paneSwitcherConfig"></pane-switcher>
 ```
+
 These are objects that were created in the parent controller of the pane switcher. Let's go over each one:
 
 ### `control`
 The `control` property is an object that represents the functionality needed to add/delete things from the pane-switcher. It's an empty object that the pane-switcher adds methods to in order to allow the controller to manipulate the popups on screen later.
+
 ```javascript
 $scope.paneSwitcherCtrl = {};
 ```
 
 ### `config`
 This is a config object for the pane-switcher. You can fill this object with anything! In this example, I define properties for the pane-switcher to watch from the root scope in order to keep track of significant width-change events (this way, the pane-switcher could potentially notify any popups that need to change their properties if, say, the browser window gets shrunk to a mobile resolution).
+
 ```javascript
 $scope.paneSwitcherConfig = {
     widthWatchers: [
@@ -62,12 +66,14 @@ $scope.paneSwitcherConfig = {
 ## Creating the pane switcher
 ### Scope
 Let's define the scope of the pane-switcher directive:
+
 ```javascript
 paneSwitcherDirective.scope = {
     control: '=',
     config: '='
 };
 ```
+
 This is a basic AngularJS directive property. Basically, I'm setting up `control` and `config` in the pane-switcher's scope to be references to objects also referenced in my controller. This is what allows me to attach methods to `control`, which my controller can call later. For more info about directives and this '=' syntax, see the [AngularJS documentation](https://docs.angularjs.org/guide/directive).
 
 > Note:
@@ -144,6 +150,7 @@ $scope.control.push_popup = function(tag, attrs, popup)
 
 #### Let's Pop that Popup
 At this point, popping a popup is super easy! Let's define that functionality.
+
 ```javascript
 /**
  * pops the top pane off of the view stack,
@@ -165,6 +172,7 @@ $scope.control.pop_popup = function()
 
 ## Using the Pane Switcher
 Now let's use it! From my controller, I can create a new popup.
+
 ```javascript
 var attrs = [
 	{ key: "class", value: "some-class-I-dunno" }
@@ -182,22 +190,24 @@ var popup = {
 }
 $scope.paneSwitcherCtrl.push_popup('totally-cool-popup', attrs, popup);
 ```
+
 And there you have it! This assumes that you have a directive in your AngularJS app called `totallyCoolPopup`. This will create an instance of that directive and animate it onto the page! You'll also need to hook up `confirm()` and `cancel()` to remove the popup and then do whatever you want it to.
 
 ## Your popup directive
 
 In order for this to work, the HTML template for `totallyCoolPopup` might look something like this:
+
 ```html
 <div id="{{ data.elementId }}">
     <h1>{{ data.title }}</h1>
-    <button ng-click="data.confirmButtonCallback()" class=”{{ data.confirmButtonClass }}”>{{ data.confirmButtonText }}</button>
-    <button ng-click="data.cancelButtonCallback()" class={{ data.cancelButtonClass }}>{{ data.cancelButtonText }}</button>
+    <button ng-click="data.confirmButtonCallback()" class="{{ data.confirmButtonClass }}">{{ data.confirmButtonText }}</button>
+    <button ng-click="data.cancelButtonCallback()" class="{{ data.cancelButtonClass }}">{{ data.cancelButtonText }}</button>
 </div>
 ```
 
 Also, I would suggest making the totallyCoolPopup directive with an isolate scope. This will keep the popup encapsulated and make it unable to mess with the pane-switcher’s scope. If you haven’t dealt with an isolate scope, here’s an example of the totallyCoolPopup’s scope definition.
 
-```
+```javascript
 totallyCoolPopupDirective.scope = {
     data: ‘=’
 };
