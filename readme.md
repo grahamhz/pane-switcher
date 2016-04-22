@@ -8,7 +8,7 @@ tags:
   - angularjs
   - popups
   - web
-header-image: img/posts/13903385550_62b8ac45c4_o-300x200.jpg
+header-image: img/posts/angular-1.png
 ---
 
 # What is this?
